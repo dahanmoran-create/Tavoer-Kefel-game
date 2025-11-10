@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק לוח הכפל - תבור</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .level-card {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .level-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .level-card.level-1 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .level-card.level-2 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .level-card.level-3 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .level-card.level-4 { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); }
+        .level-card.level-5 { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
+
+        .question-container {
+            display: none;
+            text-align: center;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .question-number {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .answer-btn {
+            background: #f7fafc;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-btn:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .answer-btn.correct {
+            background: #c6f6d5;
+            border-color: #38a169;
+            color: #22543d;
+        }
+
+        .answer-btn.incorrect {
+            background: #fed7d7;
+            border-color: #e53e3e;
+            color: #742a2a;
+        }
+
+        .feedback {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .feedback.correct {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #38a169;
+        }
+
+        .feedback.incorrect {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #e53e3e;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .summary {
+            display: none;
+            text-align: center;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        .summary-title {
+            font-size: 2.5em;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #2d3748;
+            margin: 20px auto;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin: 0 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #4a5568;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #cbd5e0;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="back-btn" onclick="goHome()" style="display: none;">🏠</button>
+        
+        <!-- מסך ראשי -->
+        <div id="homeScreen" class="home-screen">
+            <div class="header">
+                <h1 class="title">🎯 משחק לוח הכפל - תבור</h1>
+                <p class="subtitle">בחר רמת קושי עבור הנושא שבחרת ✨</p>
+            </div>
+            
+            <div class="level-selector">
+                <button class="level-card level-1" onclick="startLevel(1)">
+                    <div>רמה 1</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">לוחות 1-3</div>
+                    <div style="font-size: 0.8em; color: #666;">תרגילים פשוטים</div>
+                </button>
+                
+                <button class="level-card level-2" onclick="startLevel(2)">
+                    <div>רמה 2</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">לוחות 4-6</div>
+                    <div style="font-size: 0.8em; color: #666;">תרגילים בינוניים</div>
+                </button>
+                
+                <button class="level-card level-3" onclick="startLevel(3)">
+                    <div>רמה 3</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">לוחות 7-10</div>
+                    <div style="font-size: 0.8em; color: #666;">תרגילים מתקדמים</div>
+                </button>
+                
+                <button class="level-card level-4" onclick="startLevel(4)">
+                    <div>רמה 4</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">כפל וחילוק</div>
+                    <div style="font-size: 0.8em; color: #666;">עד 100</div>
+                </button>
+                
+                <button class="level-card level-5" onclick="startLevel(5)">
+                    <div>רמה 5</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">פעולות מעורבות</div>
+                    <div style="font-size: 0.8em; color: #666;">כל הפעולות</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- מסך השאלות -->
+        <div id="gameScreen" class="question-container">
+            <div class="question-header">
+                <div class="question-number" id="questionNumber">רמה 1 - שאלה 1</div>
+                <div class="question-text" id="questionText">כמה זה 2×3?</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="answers-grid" id="answersGrid">
+                <button class="answer-btn" onclick="selectAnswer(0, this)">א. 5</button>
+                <button class="answer-btn" onclick="selectAnswer(1, this)">ב. 6</button>
+                <button class="answer-btn" onclick="selectAnswer(2, this)">ג. 7</button>
+                <button class="answer-btn" onclick="selectAnswer(3, this)">ד. 8</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <button class="btn-primary" id="nextBtn" onclick="nextQuestion()" style="display: none;">השאלה הבאה</button>
+        </div>
+
+        <!-- מסך סיכום הרמה -->
+        <div id="summaryScreen" class="summary">
+            <h2 class="summary-title">🎉 סיימת את הרמה!</h2>
+            
+            <div class="score-circle" id="scoreCircle">12/15</div>
+            
+            <div id="summaryText">
+                <p style="font-size: 1.3em; margin: 20px 0;">נהדר! פתרת נכון 12 מתוך 15 שאלות</p>
+                <p style="color: #666; margin: 15px 0;">המשך כך והכל יסתדר! 💪</p>
+            </div>
+            
+            <div style="margin: 30px 0;">
+                <button class="btn-primary" onclick="nextLevel()">עבור לרמה הבאה</button>
+                <button class="btn-primary" onclick="goHome()">חזור לתפריט הראשי</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // משתנים גלובליים
+        let currentLevel = 1;
+        let currentQuestion = 1;
+        let correctAnswers = 0;
+        let questions = [];
+        let currentQuestionIndex = 0;
+
+        // בנקי שאלות לכל רמה
+        const levelQuestions = {
+            1: [ // רמה 1: לוחות 1-3
+                {q: "כמה זה 1×5?", answers: ["3", "4", "5", "6"], correct: 2, explanation: "1 כפול כל מספר שווה לאותו מספר"},
+                {q: "כמה זה 2×4?", answers: ["6", "8", "10", "12"], correct: 1, explanation: "2 פעמים 4 זה 8, כי 4+4=8"},
+                {q: "כמה זה 3×3?", answers: ["6", "9", "12", "15"], correct: 1, explanation: "3 פעמים 3 זה 9, כי 3+3+3=9"},
+                {q: "כמה זה 2×6?", answers: ["10", "12", "14", "16"], correct: 1, explanation: "2 פעמים 6 זה 12"},
+                {q: "כמה זה 1×8?", answers: ["7", "8", "9", "10"], correct: 1, explanation: "1 כפול כל מספר נותן את אותו מספר"},
+                {q: "כמה זה 3×5?", answers: ["12", "15", "18", "21"], correct: 1, explanation: "3 פעמים 5 זה 15"},
+                {q: "כמה זה 2×7?", answers: ["12", "14", "16", "18"], correct: 1, explanation: "2 פעמים 7 זה 14"},
+                {q: "כמה זה 3×4?", answers: ["10", "12", "14", "16"], correct: 1, explanation: "3 פעמים 4 זה 12"},
+                {q: "כמה זה 1×10?", answers: ["9", "10", "11", "12"], correct: 1, explanation: "1 כפול 10 זה 10"},
+                {q: "כמה זה 2×9?", answers: ["16", "18", "20", "22"], correct: 1, explanation: "2 פעמים 9 זה 18"},
+                {q: "כמה זה 3×7?", answers: ["18", "21", "24", "27"], correct: 1, explanation: "3 פעמים 7 זה 21"},
+                {q: "כמה זה 2×5?", answers: ["8", "10", "12", "14"], correct: 1, explanation: "2 פעמים 5 זה 10"},
+                {q: "כמה זה 3×6?", answers: ["15", "18", "21", "24"], correct: 1, explanation: "3 פעמים 6 זה 18"},
+                {q: "מה גדול יותר: 2×8 או 3×5?", answers: ["2×8", "3×5", "שווים", "לא ברור"], correct: 0, explanation: "2×8=16 ו-3×5=15, אז 2×8 גדול יותר"},
+                {q: "כמה זה 3×8?", answers: ["21", "24", "27", "30"], correct: 1, explanation: "3 פעמים 8 זה 24"}
+            ],
+            2: [ // רמה 2: לוחות 4-6
+                {q: "כמה זה 4×4?", answers: ["12", "16", "20", "24"], correct: 1, explanation: "4 פעמים 4 זה 16"},
+                {q: "כמה זה 5×5?", answers: ["20", "25", "30", "35"], correct: 1, explanation: "5 פעמים 5 זה 25 - מספר מרבע נהדר!"},
+                {q: "כמה זה 6×3?", answers: ["15", "18", "21", "24"], correct: 1, explanation: "6 פעמים 3 זה 18"},
+                {q: "כמה זה 4×7?", answers: ["24", "28", "32", "36"], correct: 1, explanation: "4 פעמים 7 זה 28"},
+                {q: "כמה זה 5×6?", answers: ["25", "30", "35", "40"], correct: 1, explanation: "5 פעמים 6 זה 30"},
+                {q: "כמה זה 6×4?", answers: ["20", "24", "28", "32"], correct: 1, explanation: "6 פעמים 4 זה 24"},
+                {q: "כמה זה 4×8?", answers: ["28", "32", "36", "40"], correct: 1, explanation: "4 פעמים 8 זה 32"},
+                {q: "כמה זה 5×7?", answers: ["30", "35", "40", "45"], correct: 1, explanation: "5 פעמים 7 זה 35"},
+                {q: "כמה זה 6×6?", answers: ["30", "36", "42", "48"], correct: 1, explanation: "6 פעמים 6 זה 36 - עוד מספר מרבע!"},
+                {q: "כמה זה 4×9?", answers: ["32", "36", "40", "44"], correct: 1, explanation: "4 פעמים 9 זה 36"},
+                {q: "כמה זה 5×8?", answers: ["35", "40", "45", "50"], correct: 1, explanation: "5 פעמים 8 זה 40"},
+                {q: "כמה זה 6×7?", answers: ["38", "42", "46", "50"], correct: 1, explanation: "6 פעמים 7 זה 42"},
+                {q: "כמה זה 4×10?", answers: ["35", "40", "45", "50"], correct: 1, explanation: "4 פעמים 10 זה 40"},
+                {q: "מה גדול יותר: 5×9 או 6×8?", answers: ["5×9", "6×8", "שווים", "לא ברור"], correct: 2, explanation: "5×9=45 ו-6×8=48, אז 6×8 גדול יותר"},
+                {q: "כמה זה 6×9?", answers: ["48", "54", "60", "66"], correct: 1, explanation: "6 פעמים 9 זה 54"}
+            ],
+            3: [ // רמה 3: לוחות 7-10
+                {q: "כמה זה 7×7?", answers: ["42", "49", "56", "63"], correct: 1, explanation: "7 פעמים 7 זה 49 - מספר מרבע מיוחד!"},
+                {q: "כמה זה 8×8?", answers: ["56", "64", "72", "80"], correct: 1, explanation: "8 פעמים 8 זה 64"},
+                {q: "כמה זה 9×9?", answers: ["72", "81", "90", "99"], correct: 1, explanation: "9 פעמים 9 זה 81"},
+                {q: "כמה זה 7×8?", answers: ["49", "56", "63", "70"], correct: 1, explanation: "7 פעמים 8 זה 56"},
+                {q: "כמה זה 8×9?", answers: ["64", "72", "80", "88"], correct: 1, explanation: "8 פעמים 9 זה 72"},
+                {q: "כמה זה 7×9?", answers: ["56", "63", "70", "77"], correct: 1, explanation: "7 פעמים 9 זה 63"},
+                {q: "כמה זה 10×7?", answers: ["60", "70", "80", "90"], correct: 1, explanation: "10 פעמים 7 זה 70 - פשוט להוסיף 0!"},
+                {q: "כמה זה 8×10?", answers: ["70", "80", "90", "100"], correct: 1, explanation: "8 פעמים 10 זה 80"},
+                {q: "כמה זה 9×10?", answers: ["80", "90", "100", "110"], correct: 1, explanation: "9 פעמים 10 זה 90"},
+                {q: "כמה זה 7×6?", answers: ["36", "42", "48", "54"], correct: 1, explanation: "7 פעמים 6 זה 42"},
+                {q: "כמה זה 8×7?", answers: ["49", "56", "63", "70"], correct: 1, explanation: "8 פעמים 7 זה 56"},
+                {q: "כמה זה 9×8?", answers: ["64", "72", "80", "88"], correct: 1, explanation: "9 פעמים 8 זה 72"},
+                {q: "כמה זה 10×10?", answers: ["90", "100", "110", "120"], correct: 1, explanation: "10 פעמים 10 זה 100 - מספר עגול ויפה!"},
+                {q: "מה גדול יותר: 7×9 או 8×8?", answers: ["7×9", "8×8", "שווים", "לא ברור"], correct: 2, explanation: "7×9=63 ו-8×8=64, אז 8×8 גדול יותר במעט"},
+                {q: "כמה זה 9×7?", answers: ["56", "63", "70", "77"], correct: 1, explanation: "9 פעמים 7 זה 63"}
+            ],
+            4: [ // רמה 4: כפל וחילוק עד 100
+                {q: "?×8 = 64", answers: ["6", "7", "8", "9"], correct: 2, explanation: "8 כפול 8 זה 64"},
+                {q: "81 ÷ 9 = ?", answers: ["7", "8", "9", "10"], correct: 2, explanation: "81 חלקי 9 זה 9"},
+                {q: "כמה זה 12×5?", answers: ["50", "55", "60", "65"], correct: 2, explanation: "12 פעמים 5 זה 60"},
+                {q: "?×7 = 56", answers: ["6", "7", "8", "9"], correct: 2, explanation: "8 כפול 7 זה 56"},
+                {q: "72 ÷ 8 = ?", answers: ["7", "8", "9", "10"], correct: 2, explanation: "72 חלקי 8 זה 9"},
+                {q: "כמה זה 15×4?", answers: ["55", "60", "65", "70"], correct: 1, explanation: "15 פעמים 4 זה 60"},
+                {q: "?×9 = 63", answers: ["6", "7", "8", "9"], correct: 1, explanation: "7 כפול 9 זה 63"},
+                {q: "96 ÷ 12 = ?", answers: ["6", "7", "8", "9"], correct: 2, explanation: "96 חלקי 12 זה 8"},
+                {q: "כמה זה 11×6?", answers: ["60", "66", "72", "78"], correct: 1, explanation: "11 פעמים 6 זה 66"},
+                {q: "?×5 = 45", answers: ["7", "8", "9", "10"], correct: 2, explanation: "9 כפול 5 זה 45"},
+                {q: "84 ÷ 7 = ?", answers: ["10", "11", "12", "13"], correct: 2, explanation: "84 חלקי 7 זה 12"},
+                {q: "כמה זה 13×7?", answers: ["84", "91", "98", "105"], correct: 1, explanation: "13 פעמים 7 זה 91"},
+                {q: "?×6 = 48", answers: ["6", "7", "8", "9"], correct: 2, explanation: "8 כפול 6 זה 48"},
+                {q: "מה גדול יותר: 8×11 או 9×10?", answers: ["8×11", "9×10", "שווים", "לא ברור"], correct: 2, explanation: "8×11=88 ו-9×10=90, אז 9×10 גדול יותר"},
+                {q: "100 ÷ 10 = ?", answers: ["9", "10", "11", "12"], correct: 1, explanation: "100 חלקי 10 זה 10"}
+            ],
+            5: [ // רמה 5: פעולות מעורבות
+                {q: "6×4 + 8 = ?", answers: ["30", "32", "34", "36"], correct: 1, explanation: "6×4=24, ואז 24+8=32"},
+                {q: "81 - 9×9 = ?", answers: ["0", "9", "18", "27"], correct: 0, explanation: "9×9=81, ואז 81-81=0"},
+                {q: "7×5 - 15 = ?", answers: ["15", "20", "25", "30"], correct: 1, explanation: "7×5=35, ואז 35-15=20"},
+                {q: "48 ÷ 6 + 12 = ?", answers: ["18", "20", "22", "24"], correct: 1, explanation: "48÷6=8, ואז 8+12=20"},
+                {q: "5×8 - 25 = ?", answers: ["10", "15", "20", "25"], correct: 1, explanation: "5×8=40, ואז 40-25=15"},
+                {q: "72 ÷ 9 + 16 = ?", answers: ["22", "24", "26", "28"], correct: 1, explanation: "72÷9=8, ואז 8+16=24"},
+                {q: "9×3 + 7 = ?", answers: ["32", "34", "36", "38"], correct: 1, explanation: "9×3=27, ואז 27+7=34"},
+                {q: "60 - 8×7 = ?", answers: ["2", "4", "6", "8"], correct: 1, explanation: "8×7=56, ואז 60-56=4"},
+                {q: "6×7 + 18 = ?", answers: ["58", "60", "62", "64"], correct: 1, explanation: "6×7=42, ואז 42+18=60"},
+                {q: "100 ÷ 4 - 15 = ?", answers: ["5", "10", "15", "20"], correct: 1, explanation: "100÷4=25, ואז 25-15=10"},
+                {q: "8×6 - 28 = ?", answers: ["18", "20", "22", "24"], correct: 1, explanation: "8×6=48, ואז 48-28=20"},
+                {q: "54 ÷ 6 + 21 = ?", answers: ["28", "30", "32", "34"], correct: 1, explanation: "54÷6=9, ואז 9+21=30"},
+                {q: "7×9 - 35 = ?", answers: ["26", "28", "30", "32"], correct: 1, explanation: "7×9=63, ואז 63-35=28"},
+                {q: "מה גדול יותר: (6×8)+4 או (7×7)-1?", answers: ["6×8+4", "7×7-1", "שווים", "לא ברור"], correct: 2, explanation: "6×8+4=52 ו-7×7-1=48, אז 6×8+4 גדול יותר"},
+                {q: "96 ÷ 8 + 5×3 = ?", answers: ["25", "27", "29", "31"], correct: 1, explanation: "96÷8=12, 5×3=15, ואז 12+15=27"}
+            ]
+        };
+
+        function startLevel(level) {
+            currentLevel = level;
+            currentQuestion = 1;
+            correctAnswers = 0;
+            questions = [...levelQuestions[level]]; // העתק של השאלות
+            shuffleArray(questions); // ערבב את השאלות
+            currentQuestionIndex = 0;
+
+            // הסתר מסך הבית והצג מסך המשחק
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.querySelector('.back-btn').style.display = 'block';
+
+            showQuestion();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length || currentQuestion > 15) {
+                showSummary();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            
+            // עדכן את מספר השאלה והטקסט
+            document.getElementById('questionNumber').textContent = `רמה ${currentLevel} - שאלה ${currentQuestion}`;
+            document.getElementById('questionText').textContent = question.q;
+            
+            // עדכן את עמודת ההתקדמות
+            const progress = (currentQuestion - 1) / 15 * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // עדכן את התשובות
+            const answersGrid = document.getElementById('answersGrid');
+            const answerLabels = ['א', 'ב', 'ג', 'ד'];
+            answersGrid.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = `${answerLabels[i]}. ${question.answers[i]}`;
+                btn.onclick = () => selectAnswer(i, btn);
+                answersGrid.appendChild(btn);
+            }
+            
+            // הסתר פידבק וכפתור הבא
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            // אפס צבעי כפתורים
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.classList.remove('correct', 'incorrect');
+            });
+        }
+
+        function selectAnswer(answerIndex, buttonElement) {
+            const question = questions[currentQuestionIndex];
+            const feedback = document.getElementById('feedback');
+            const isCorrect = answerIndex === question.correct;
+            
+            // השבת את כל הכפתורים
+            document.querySelectorAll('.answer-btn').forEach(btn => btn.disabled = true);
+            
+            // צבע את הכפתור הנכון
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons[question.correct].classList.add('correct');
+            
+            if (isCorrect) {
+                correctAnswers++;
+                feedback.className = 'feedback correct';
+                feedback.innerHTML = `🎉 נכון! ${question.explanation}`;
+            } else {
+                buttonElement.classList.add('incorrect');
+                feedback.className = 'feedback incorrect';
+                feedback.innerHTML = `❌ לא בדיוק, התשובה הנכונה היא ${['א', 'ב', 'ג', 'ד'][question.correct]}. ${question.explanation}`;
+            }
+            
+            feedback.style.display = 'block';
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            currentQuestionIndex++;
+            
+            // אפס כפתורים
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('correct', 'incorrect');
+            });
+            
+            showQuestion();
+        }
+
+        function showSummary() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('summaryScreen').style.display = 'block';
+            
+            const scoreCircle = document.getElementById('scoreCircle');
+            const summaryText = document.getElementById('summaryText');
+            
+            scoreCircle.textContent = `${correctAnswers}/15`;
+            
+            let message = '';
+            let encouragement = '';
+            
+            if (correctAnswers >= 14) {
+                message = '🌟 פנטסטי! אתה מאסטר של לוח הכפל!';
+                encouragement = 'ביצועים מושלמים! אתה מוכן לכל אתגר! 🏆';
+            } else if (correctAnswers >= 12) {
+                message = '🎯 מעולה! יש לך שליטה טובה בלוח הכפל';
+                encouragement = 'כמעט מושלם! המשך לתרגל ותגיע למצוינות! 💪';
+            } else if (correctAnswers >= 9) {
+                message = '👍 יפה מאוד! אתה מתקדם טוב';
+                encouragement = 'ביצועים טובים! עם עוד קצת תרגול תהיה מושלם! 📚';
+            } else if (correctAnswers >= 6) {
+                message = '😊 בסדר גמור! יש מקום לשיפור';
+                encouragement = 'אל תתייאש! כל תרגול מקדם אותך קדימה! 🌱';
+            } else {
+                message = '💙 זה בסדר, כולנו לומדים!';
+                encouragement = 'אל תוותר! עם תרגול תגיע לכל מקום! 🚀';
+            }
+            
+            summaryText.innerHTML = `
+                <p style="font-size: 1.3em; margin: 20px 0;">${message}</p>
+                <p style="color: #666; margin: 15px 0; font-size: 1.1em;">פתרת נכון ${correctAnswers} מתוך 15 שאלות</p>
+                <p style="color: #4a90e2; margin: 15px 0; font-weight: bold;">${encouragement}</p>
+            `;
+        }
+
+        function nextLevel() {
+            if (currentLevel < 5) {
+                startLevel(currentLevel + 1);
+            } else {
+                alert('🎉 כל הכבוד! סיימת את כל הרמות! אתה מאסטר מתמטיקה אמיתי!');
+                goHome();
+            }
+        }
+
+        function goHome() {
+            document.getElementById('homeScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('summaryScreen').style.display = 'none';
+            document.querySelector('.back-btn').style.display = 'none';
+        }
+
+        // הוסף אפקטים נוספים
+        document.addEventListener('DOMContentLoaded', function() {
+            // אנימציה ליכולות הכרטיסים
+            const levelCards = document.querySelectorAll('.level-card');
+            levelCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
